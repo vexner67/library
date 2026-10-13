@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<authors>
+    <author>
+        <id>0192f0a1-5c3e-7a10-9b2d-3f4e5a6b7c81</id>
+        <name>Михаил Булгаков</name>
+        <birth_date>1891-05-15</birth_date>
+        <death_date>1940-03-10</death_date>
+    </author>
+    <author>
+        <id>0192f0a1-5c3e-7a10-9b2d-3f4e5a6b7c82</id>
+        <name>Илья Ильф</name>
+        <birth_date>1897-10-15</birth_date>
+        <death_date>1937-04-13</death_date>
+    </author>
+    <author>
+        <id>0192f0a1-5c3e-7a10-9b2d-3f4e5a6b7c83</id>
+        <name>Евгений Петров</name>
+        <birth_date>1902-12-13</birth_date>
+        <death_date>1942-07-02</death_date>
+    </author>
+</authors>

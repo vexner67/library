@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<books>
+    <book>
+        <id>0192f0a2-1d4f-7b20-8c3e-4f5a6b7c8d91</id>
+        <title>Мастер и Маргарита</title>
+        <publication_year>1967</publication_year>
+        <author_ids>
+            <author_id>0192f0a1-5c3e-7a10-9b2d-3f4e5a6b7c81</author_id>
+        </author_ids>
+    </book>
+    <book>
+        <id>0192f0a2-1d4f-7b20-8c3e-4f5a6b7c8d92</id>
+        <title>Двенадцать стульев</title>
+        <publication_year>1928</publication_year>
+        <author_ids>
+            <author_id>0192f0a1-5c3e-7a10-9b2d-3f4e5a6b7c82</author_id>
+            <author_id>0192f0a1-5c3e-7a10-9b2d-3f4e5a6b7c83</author_id>
+        </author_ids>
+    </book>
+</books>

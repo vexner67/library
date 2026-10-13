@@ -1,0 +1,21 @@
+{
+    "books": [
+        {
+            "id": "0192f0a2-1d4f-7b20-8c3e-4f5a6b7c8d91",
+            "title": "Мастер и Маргарита",
+            "publication_year": 1967,
+            "author_ids": [
+                "0192f0a1-5c3e-7a10-9b2d-3f4e5a6b7c81"
+            ]
+        },
+        {
+            "id": "0192f0a2-1d4f-7b20-8c3e-4f5a6b7c8d92",
+            "title": "Двенадцать стульев",
+            "publication_year": 1928,
+            "author_ids": [
+                "0192f0a1-5c3e-7a10-9b2d-3f4e5a6b7c82",
+                "0192f0a1-5c3e-7a10-9b2d-3f4e5a6b7c83"
+            ]
+        }
+    ]
+}
