@@ -148,8 +148,12 @@ class Console:
         self.__print_books(books)
 
     def __add_book(self) -> None:
-        title = Title(read_line("\nНазвание книги: "))
-        year = PublicationYear(self.__read_int("Год издания: "))
+        print()
+        title = self.__ask("Название книги: ", Title)
+        year = self.__ask(
+            "Год издания: ",
+            lambda raw: PublicationYear(self.__parse_int(raw)),
+        )
 
         authors = [self.__read_author()]
 
@@ -165,17 +169,21 @@ class Console:
         if book is None:
             return
 
-        print("Оставьте поле пустым, чтобы не менять его")
-        raw_title = read_line(f"Название [{book.title.value}]: ").strip()
-        raw_year = read_line(
-            f"Год издания [{book.publication_year.value}]: "
-        ).strip()
+        current_title = book.title
+        current_year = book.publication_year
 
-        title = Title(raw_title) if raw_title else book.title
-        year = (
-            PublicationYear(self.__parse_int(raw_year))
-            if raw_year
-            else book.publication_year
+        print("Оставьте поле пустым, чтобы не менять его")
+        title = self.__ask(
+            f"Название [{current_title.value}]: ",
+            lambda raw: Title(raw) if raw else current_title,
+        )
+        year = self.__ask(
+            f"Год издания [{current_year.value}]: ",
+            lambda raw: (
+                PublicationYear(self.__parse_int(raw))
+                if raw
+                else current_year
+            ),
         )
 
         self.__book_service.update_book(book.id, title, year)
@@ -222,33 +230,44 @@ class Console:
         if author is None:
             return
 
+        author_id = author.id
+        current_name = author.name
+        current_birth = author.birth_date
+        current_death = author.death_date
+
         print("Оставьте поле пустым, чтобы не менять его")
-        raw_name = read_line(f"Имя [{author.name.value}]: ").strip()
-        raw_birth = read_line(
-            f"Дата рождения [{author.birth_date.isoformat()}]: "
-        ).strip()
-        current_death = (
-            author.death_date.isoformat() if author.death_date else "нет"
+        name = self.__ask(
+            f"Имя [{current_name.value}]: ",
+            lambda raw: Name(raw) if raw else current_name,
         )
-        raw_death = read_line(
-            f"Дата смерти [{current_death}] (- чтобы убрать): "
-        ).strip()
+        birth_date = self.__ask(
+            f"Дата рождения [{current_birth.isoformat()}]: ",
+            lambda raw: Author(
+                author_id=author_id,
+                name=name,
+                birth_date=self.__parse_date(raw) if raw else current_birth,
+            ).birth_date,
+        )
 
-        death_date = author.death_date
-        if raw_death == "-":
-            death_date = None
-        elif raw_death:
-            death_date = self.__parse_date(raw_death)
+        def to_updated_author(raw: str) -> Author:
+            death_date = current_death
 
-        updated = Author(
-            author_id=author.id,
-            name=Name(raw_name) if raw_name else author.name,
-            birth_date=(
-                self.__parse_date(raw_birth)
-                if raw_birth
-                else author.birth_date
-            ),
-            death_date=death_date,
+            if raw == "-":
+                death_date = None
+            elif raw:
+                death_date = self.__parse_date(raw)
+
+            return Author(
+                author_id=author_id,
+                name=name,
+                birth_date=birth_date,
+                death_date=death_date,
+            )
+
+        death_label = current_death.isoformat() if current_death else "нет"
+        updated = self.__ask(
+            f"Дата смерти [{death_label}] (- чтобы убрать): ",
+            to_updated_author,
         )
 
         self.__author_service.update_author(updated)
@@ -256,19 +275,25 @@ class Console:
 
     def __read_author(self) -> Author:
         print("\nДанные автора")
-        name = Name(read_line("Имя: "))
-        birth_date = self.__parse_date(
-            read_line("Дата рождения (ГГГГ-ММ-ДД): ").strip()
+        author_id = uuid7()
+        name = self.__ask("Имя: ", Name)
+        birth_date = self.__ask(
+            "Дата рождения (ГГГГ-ММ-ДД): ",
+            lambda raw: Author(
+                author_id=author_id,
+                name=name,
+                birth_date=self.__parse_date(raw),
+            ).birth_date,
         )
-        raw_death = read_line(
-            "Дата смерти (Enter, если жив или неизвестна): "
-        ).strip()
 
-        return Author(
-            author_id=uuid7(),
-            name=name,
-            birth_date=birth_date,
-            death_date=self.__parse_date(raw_death) if raw_death else None,
+        return self.__ask(
+            "Дата смерти (Enter, если жив или неизвестна): ",
+            lambda raw: Author(
+                author_id=author_id,
+                name=name,
+                birth_date=birth_date,
+                death_date=self.__parse_date(raw) if raw else None,
+            ),
         )
 
     @staticmethod
@@ -292,16 +317,27 @@ class Console:
                 f"«{raw}» — неверная дата, нужен формат ГГГГ-ММ-ДД"
             ) from error
 
-    def __read_int(self, prompt: str) -> int:
-        return self.__parse_int(read_line(prompt).strip())
+    @staticmethod
+    def __ask[T](prompt: str, parse: Callable[[str], T]) -> T:
+        while True:
+            raw = read_line(prompt).strip()
+
+            try:
+                return parse(raw)
+            except ValidationError as error:
+                print(f"Ошибка: {error}. Повторите ввод")
 
     def __choose(self, count: int, prompt: str) -> int:
-        number = self.__read_int(f"\n{prompt}")
+        def to_index(raw: str) -> int:
+            number = self.__parse_int(raw)
 
-        if not 1 <= number <= count:
-            raise ValidationError(f"Нужен номер от 1 до {count}")
+            if not 1 <= number <= count:
+                raise ValidationError(f"Нужен номер от 1 до {count}")
 
-        return number - 1
+            return number - 1
+
+        print()
+        return self.__ask(prompt, to_index)
 
     @staticmethod
     def __confirm(question: str) -> bool:
