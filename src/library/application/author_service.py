@@ -33,9 +33,7 @@ class AuthorService:
         return self.__author_repository.find_by_name(name)
 
     def update_author(self, author: Author) -> None:
-        self.get_author(author.id)
         self.__author_repository.update(author)
 
     def delete_author(self, author_id: UUID) -> None:
-        self.get_author(author_id)
         self.__author_repository.delete(author_id)

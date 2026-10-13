@@ -6,9 +6,6 @@ MAX_TITLE_LENGTH = 200
 
 class Title:
     def __init__(self, value: str) -> None:
-        if not isinstance(value, str):
-            raise ValidationError("Название должно быть строкой")
-
         normalized = value.strip()
 
         if len(normalized) < MIN_TITLE_LENGTH:

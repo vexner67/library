@@ -65,26 +65,25 @@ class Console:
         self.__author_service = author_service
 
     def run(self) -> None:
-        actions: dict[str, Callable[[], None]] = {
-            "1": self.__show_books,
-            "2": self.__find_books,
-            "3": self.__add_book,
-            "4": self.__update_book,
-            "5": self.__delete_book,
-            "6": self.__show_authors,
-            "7": self.__update_author,
-        }
+        menu: list[tuple[str, str, Callable[[], None]]] = [
+            ("1", "Показать все книги", self.__show_books),
+            ("2", "Найти книгу по названию", self.__find_books),
+            ("3", "Добавить книгу", self.__add_book),
+            ("4", "Изменить книгу", self.__update_book),
+            ("5", "Удалить книгу", self.__delete_book),
+            ("6", "Показать всех авторов", self.__show_authors),
+            ("7", "Изменить автора", self.__update_author),
+        ]
+        actions = {key: action for key, _, action in menu}
 
         print("\nДобро пожаловать в библиотеку!")
 
         while True:
-            print("\n1. Показать все книги")
-            print("2. Найти книгу по названию")
-            print("3. Добавить книгу")
-            print("4. Изменить книгу")
-            print("5. Удалить книгу")
-            print("6. Показать всех авторов")
-            print("7. Изменить автора")
+            print()
+
+            for key, label, _ in menu:
+                print(f"{key}. {label}")
+
             print("0. Выход")
 
             try:
@@ -118,6 +117,26 @@ class Console:
 
         self.__print_books(books)
 
+    def __pick_book(self, prompt: str) -> Book | None:
+        books = self.__book_service.get_all_books()
+
+        if not books:
+            print("\nКаталог пуст")
+            return None
+
+        self.__print_books(books)
+        return books[self.__choose(len(books), prompt)]
+
+    def __pick_author(self, prompt: str) -> Author | None:
+        authors = self.__author_service.get_all_authors()
+
+        if not authors:
+            print("\nАвторов пока нет")
+            return None
+
+        self.__print_authors(authors)
+        return authors[self.__choose(len(authors), prompt)]
+
     def __find_books(self) -> None:
         title = read_line("\nВведите название или его часть: ")
         books = self.__book_service.find_books_by_title(title)
@@ -141,14 +160,10 @@ class Console:
         print(f"\nКнига «{book.title.value}» добавлена")
 
     def __update_book(self) -> None:
-        books = self.__book_service.get_all_books()
+        book = self.__pick_book("Номер книги: ")
 
-        if not books:
-            print("\nКаталог пуст")
+        if book is None:
             return
-
-        self.__print_books(books)
-        book = books[self.__choose(len(books), "Номер книги: ")]
 
         print("Оставьте поле пустым, чтобы не менять его")
         raw_title = read_line(f"Название [{book.title.value}]: ").strip()
@@ -167,14 +182,10 @@ class Console:
         print("\nКнига изменена")
 
     def __delete_book(self) -> None:
-        books = self.__book_service.get_all_books()
+        book = self.__pick_book("Номер книги для удаления: ")
 
-        if not books:
-            print("\nКаталог пуст")
+        if book is None:
             return
-
-        self.__print_books(books)
-        book = books[self.__choose(len(books), "Номер книги для удаления: ")]
 
         if not self.__confirm(f"Удалить «{book.title.value}»?"):
             print("\nУдаление отменено")
@@ -206,14 +217,10 @@ class Console:
         self.__print_authors(authors)
 
     def __update_author(self) -> None:
-        authors = self.__author_service.get_all_authors()
+        author = self.__pick_author("Номер автора: ")
 
-        if not authors:
-            print("\nАвторов пока нет")
+        if author is None:
             return
-
-        self.__print_authors(authors)
-        author = authors[self.__choose(len(authors), "Номер автора: ")]
 
         print("Оставьте поле пустым, чтобы не менять его")
         raw_name = read_line(f"Имя [{author.name.value}]: ").strip()

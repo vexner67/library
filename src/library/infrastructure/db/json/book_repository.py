@@ -65,7 +65,13 @@ class JsonBookRepository:
                     for author_id in item["author_ids"]
                 ],
             )
-        except (KeyError, ValueError, TypeError, ValidationError) as error:
+        except (
+            KeyError,
+            ValueError,
+            TypeError,
+            AttributeError,
+            ValidationError,
+        ) as error:
             raise StorageError(
                 f"В файле {self.__path} повреждена запись книги"
             ) from error
@@ -82,22 +88,33 @@ class JsonBookRepository:
             ],
         }
 
+    @staticmethod
+    def __find_index(
+        books: list[dict[str, Any]], book_id: UUID
+    ) -> int | None:
+        for index, item in enumerate(books):
+            if item.get("id") == str(book_id):
+                return index
+
+        return None
+
     def add(self, book: Book) -> None:
         books = self.__read_data()
 
-        for item in books:
-            if item.get("id") == str(book.id):
-                raise AlreadyExistsError(f"Книга {book.id} уже существует")
+        if self.__find_index(books, book.id) is not None:
+            raise AlreadyExistsError(f"Книга {book.id} уже существует")
 
         books.append(self.__to_dict(book))
         self.__write_data(books)
 
     def get_by_id(self, book_id: UUID) -> Book | None:
-        for item in self.__read_data():
-            if item.get("id") == str(book_id):
-                return self.__to_book(item)
+        books = self.__read_data()
+        index = self.__find_index(books, book_id)
 
-        return None
+        if index is None:
+            return None
+
+        return self.__to_book(books[index])
 
     def get_all(self) -> list[Book]:
         return [
@@ -116,22 +133,20 @@ class JsonBookRepository:
 
     def update(self, book: Book) -> None:
         books = self.__read_data()
+        index = self.__find_index(books, book.id)
 
-        for index, item in enumerate(books):
-            if item.get("id") == str(book.id):
-                books[index] = self.__to_dict(book)
-                self.__write_data(books)
-                return
+        if index is None:
+            raise NotFoundError(f"Книга {book.id} не найдена")
 
-        raise NotFoundError(f"Книга {book.id} не найдена")
+        books[index] = self.__to_dict(book)
+        self.__write_data(books)
 
     def delete(self, book_id: UUID) -> None:
         books = self.__read_data()
+        index = self.__find_index(books, book_id)
 
-        for index, item in enumerate(books):
-            if item.get("id") == str(book_id):
-                del books[index]
-                self.__write_data(books)
-                return
+        if index is None:
+            raise NotFoundError(f"Книга {book_id} не найдена")
 
-        raise NotFoundError(f"Книга {book_id} не найдена")
+        del books[index]
+        self.__write_data(books)

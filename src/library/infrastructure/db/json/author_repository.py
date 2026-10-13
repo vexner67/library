@@ -68,7 +68,13 @@ class JsonAuthorRepository:
                     else None
                 ),
             )
-        except (KeyError, ValueError, TypeError, ValidationError) as error:
+        except (
+            KeyError,
+            ValueError,
+            TypeError,
+            AttributeError,
+            ValidationError,
+        ) as error:
             raise StorageError(
                 f"В файле {self.__file_path} повреждена запись автора"
             ) from error
@@ -86,22 +92,33 @@ class JsonAuthorRepository:
             ),
         }
 
+    @staticmethod
+    def __find_index(
+        authors: list[dict[str, Any]], author_id: UUID
+    ) -> int | None:
+        for index, item in enumerate(authors):
+            if item.get("id") == str(author_id):
+                return index
+
+        return None
+
     def add(self, author: Author) -> None:
         authors = self.__load_data()
 
-        for item in authors:
-            if item.get("id") == str(author.id):
-                raise AlreadyExistsError(f"Автор {author.id} уже существует")
+        if self.__find_index(authors, author.id) is not None:
+            raise AlreadyExistsError(f"Автор {author.id} уже существует")
 
         authors.append(self.__to_dict(author))
         self.__save_data(authors)
 
     def get_by_id(self, author_id: UUID) -> Author | None:
-        for data in self.__load_data():
-            if data.get("id") == str(author_id):
-                return self.__to_author(data)
+        authors = self.__load_data()
+        index = self.__find_index(authors, author_id)
 
-        return None
+        if index is None:
+            return None
+
+        return self.__to_author(authors[index])
 
     def get_all(self) -> list[Author]:
         return [
@@ -123,22 +140,20 @@ class JsonAuthorRepository:
 
     def update(self, author: Author) -> None:
         authors = self.__load_data()
+        index = self.__find_index(authors, author.id)
 
-        for index, item in enumerate(authors):
-            if item.get("id") == str(author.id):
-                authors[index] = self.__to_dict(author)
-                self.__save_data(authors)
-                return
+        if index is None:
+            raise NotFoundError(f"Автор {author.id} не найден")
 
-        raise NotFoundError(f"Автор {author.id} не найден")
+        authors[index] = self.__to_dict(author)
+        self.__save_data(authors)
 
     def delete(self, author_id: UUID) -> None:
         authors = self.__load_data()
+        index = self.__find_index(authors, author_id)
 
-        for index, item in enumerate(authors):
-            if item.get("id") == str(author_id):
-                del authors[index]
-                self.__save_data(authors)
-                return
+        if index is None:
+            raise NotFoundError(f"Автор {author_id} не найден")
 
-        raise NotFoundError(f"Автор {author_id} не найден")
+        del authors[index]
+        self.__save_data(authors)

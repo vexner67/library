@@ -101,24 +101,30 @@ class XmlBookRepository:
                 f"В файле {self.__path} повреждена запись книги"
             ) from error
 
+    @staticmethod
+    def __find_element(root: ET.Element, book_id: UUID) -> ET.Element | None:
+        for element in root.findall("book"):
+            if element.findtext("id") == str(book_id):
+                return element
+
+        return None
+
     def add(self, book: Book) -> None:
         root = self.__read_root()
 
-        for element in root.findall("book"):
-            if element.findtext("id") == str(book.id):
-                raise AlreadyExistsError(f"Книга {book.id} уже существует")
+        if self.__find_element(root, book.id) is not None:
+            raise AlreadyExistsError(f"Книга {book.id} уже существует")
 
         root.append(self.__book_to_element(book))
         self.__write_root(root)
 
     def get_by_id(self, book_id: UUID) -> Book | None:
-        root = self.__read_root()
+        element = self.__find_element(self.__read_root(), book_id)
 
-        for element in root.findall("book"):
-            if element.findtext("id") == str(book_id):
-                return self.__element_to_book(element)
+        if element is None:
+            return None
 
-        return None
+        return self.__element_to_book(element)
 
     def get_all(self) -> list[Book]:
         root = self.__read_root()
@@ -139,23 +145,22 @@ class XmlBookRepository:
 
     def update(self, book: Book) -> None:
         root = self.__read_root()
+        element = self.__find_element(root, book.id)
 
-        for index, element in enumerate(root.findall("book")):
-            if element.findtext("id") == str(book.id):
-                root.remove(element)
-                root.insert(index, self.__book_to_element(book))
-                self.__write_root(root)
-                return
+        if element is None:
+            raise NotFoundError(f"Книга {book.id} не найдена")
 
-        raise NotFoundError(f"Книга {book.id} не найдена")
+        index = list(root).index(element)
+        root.remove(element)
+        root.insert(index, self.__book_to_element(book))
+        self.__write_root(root)
 
     def delete(self, book_id: UUID) -> None:
         root = self.__read_root()
+        element = self.__find_element(root, book_id)
 
-        for element in root.findall("book"):
-            if element.findtext("id") == str(book_id):
-                root.remove(element)
-                self.__write_root(root)
-                return
+        if element is None:
+            raise NotFoundError(f"Книга {book_id} не найдена")
 
-        raise NotFoundError(f"Книга {book_id} не найдена")
+        root.remove(element)
+        self.__write_root(root)

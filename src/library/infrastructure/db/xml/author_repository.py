@@ -94,24 +94,30 @@ class XmlAuthorRepository:
 
         return element
 
+    @staticmethod
+    def __find_element(root: ET.Element, author_id: UUID) -> ET.Element | None:
+        for element in root.findall("author"):
+            if element.findtext("id") == str(author_id):
+                return element
+
+        return None
+
     def add(self, author: Author) -> None:
         root = self.__load_root()
 
-        for element in root.findall("author"):
-            if element.findtext("id") == str(author.id):
-                raise AlreadyExistsError(f"Автор {author.id} уже существует")
+        if self.__find_element(root, author.id) is not None:
+            raise AlreadyExistsError(f"Автор {author.id} уже существует")
 
         root.append(self.__to_element(author))
         self.__save_root(root)
 
     def get_by_id(self, author_id: UUID) -> Author | None:
-        root = self.__load_root()
+        element = self.__find_element(self.__load_root(), author_id)
 
-        for element in root.findall("author"):
-            if element.findtext("id") == str(author_id):
-                return self.__to_author(element)
+        if element is None:
+            return None
 
-        return None
+        return self.__to_author(element)
 
     def get_all(self) -> list[Author]:
         root = self.__load_root()
@@ -135,23 +141,22 @@ class XmlAuthorRepository:
 
     def update(self, author: Author) -> None:
         root = self.__load_root()
+        element = self.__find_element(root, author.id)
 
-        for index, element in enumerate(root.findall("author")):
-            if element.findtext("id") == str(author.id):
-                root.remove(element)
-                root.insert(index, self.__to_element(author))
-                self.__save_root(root)
-                return
+        if element is None:
+            raise NotFoundError(f"Автор {author.id} не найден")
 
-        raise NotFoundError(f"Автор {author.id} не найден")
+        index = list(root).index(element)
+        root.remove(element)
+        root.insert(index, self.__to_element(author))
+        self.__save_root(root)
 
     def delete(self, author_id: UUID) -> None:
         root = self.__load_root()
+        element = self.__find_element(root, author_id)
 
-        for element in root.findall("author"):
-            if element.findtext("id") == str(author_id):
-                root.remove(element)
-                self.__save_root(root)
-                return
+        if element is None:
+            raise NotFoundError(f"Автор {author_id} не найден")
 
-        raise NotFoundError(f"Автор {author_id} не найден")
+        root.remove(element)
+        self.__save_root(root)

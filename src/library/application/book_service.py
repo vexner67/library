@@ -88,7 +88,6 @@ class BookService:
         return updated
 
     def delete_book(self, book_id: UUID) -> None:
-        self.get_book(book_id)
         self.__book_repo.delete(book_id)
 
     def __save_author_if_new(self, author: Author) -> UUID:

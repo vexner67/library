@@ -7,9 +7,6 @@ MIN_PUBLICATION_YEAR = 1450
 
 class PublicationYear:
     def __init__(self, year: int) -> None:
-        if not isinstance(year, int):
-            raise ValidationError("Год издания должен быть целым числом")
-
         current_year = date.today().year
 
         if not MIN_PUBLICATION_YEAR <= year <= current_year:
