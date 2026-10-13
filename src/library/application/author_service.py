@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from application.services.ports import AuthorRepository
+from domain.author.repository import AuthorRepository
 from domain.author.author import Author
 from domain.exceptions import AlreadyExistsError, NotFoundError
 

@@ -1,10 +1,11 @@
 from uuid import UUID, uuid7
 
-from application.services.ports import AuthorRepository, BookRepository
+from domain.author.repository import AuthorRepository
+from domain.book.repository import BookRepository
 from domain.author.author import Author
-from domain.book.book import Book
-from domain.book.publication_year import PublicationYear
 from domain.book.title import Title
+from domain.book.publication_year import PublicationYear
+from domain.book.book import Book
 from domain.exceptions import NotFoundError, ValidationError
 
 

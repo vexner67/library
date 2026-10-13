@@ -1,11 +1,11 @@
-from application.services.author_service import AuthorService
-from application.services.book_service import BookService
+from application.author_service import AuthorService
+from application.book_service import BookService
 from domain.exceptions import LibraryError
-from infrastructure.console import Console
-from infrastructure.repositories.xml_author_repository import (
+from presentation.console import Console
+from infrastructure.db.xml.author_repository import (
     XmlAuthorRepository,
 )
-from infrastructure.repositories.xml_book_repository import (
+from infrastructure.db.xml.book_repository import (
     XmlBookRepository,
 )
 
