@@ -1,6 +1,6 @@
 PYTHON := .venv/bin/python
 SRC := src
-export PYTHONPATH := $(SRC)
+export PYTHONPATH := src/library
 
 .PHONY: install lint typecheck test check run
 
@@ -19,4 +19,4 @@ test:
 check: lint typecheck test
 
 run:
-	$(PYTHON) -m library
+	PYTHONPATH=src/library .venv/bin/python src/library/__main__.py
