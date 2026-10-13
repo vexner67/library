@@ -22,17 +22,7 @@ class JsonAuthorRepository:
         if not self.__file_path.exists():
             return []
 
-        try:
-            with self.__file_path.open("r", encoding="utf-8") as file:
-                data = json.load(file)
-        except json.JSONDecodeError as error:
-            raise StorageError(
-                f"Файл {self.__file_path} повреждён: некорректный JSON"
-            ) from error
-        except OSError as error:
-            raise StorageError(
-                f"Не удалось прочитать файл {self.__file_path}"
-            ) from error
+        data = self.__read_file()
 
         if not isinstance(data, dict) or not isinstance(
             data.get("authors"), list
@@ -43,6 +33,19 @@ class JsonAuthorRepository:
 
         authors: list[dict[str, Any]] = data["authors"]
         return authors
+
+    def __read_file(self) -> Any:
+        try:
+            with self.__file_path.open("r", encoding="utf-8") as file:
+                return json.load(file)
+        except json.JSONDecodeError as error:
+            raise StorageError(
+                f"Файл {self.__file_path} повреждён: некорректный JSON"
+            ) from error
+        except OSError as error:
+            raise StorageError(
+                f"Не удалось прочитать файл {self.__file_path}"
+            ) from error
 
     def __save_data(self, authors: list[dict[str, Any]]) -> None:
         try:

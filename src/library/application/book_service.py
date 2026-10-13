@@ -24,18 +24,7 @@ class BookService:
         publication_year: PublicationYear,
         authors: list[Author],
     ) -> Book:
-        author_ids: list[UUID] = []
-
-        for author in authors:
-            author_id = self.__save_author_if_new(author)
-
-            if author_id in author_ids:
-                raise ValidationError(
-                    f"Автор «{author.name.value}» указан дважды"
-                )
-
-            author_ids.append(author_id)
-
+        author_ids = self.__save_authors(authors)
         book = Book(
             book_id=uuid7(),
             title=title,
@@ -90,10 +79,33 @@ class BookService:
     def delete_book(self, book_id: UUID) -> None:
         self.__book_repo.delete(book_id)
 
+    def __save_authors(self, authors: list[Author]) -> list[UUID]:
+        author_ids: list[UUID] = []
+
+        for author in authors:
+            author_id = self.__save_author_if_new(author)
+
+            if author_id in author_ids:
+                raise ValidationError(
+                    f"Автор «{author.name.value}» указан дважды"
+                )
+
+            author_ids.append(author_id)
+
+        return author_ids
+
     def __save_author_if_new(self, author: Author) -> UUID:
-        for existing in self.__author_repo.get_all():
-            if existing.is_same_person(author):
-                return existing.id
+        existing = self.__find_same_person(author)
+
+        if existing is not None:
+            return existing.id
 
         self.__author_repo.add(author)
         return author.id
+
+    def __find_same_person(self, author: Author) -> Author | None:
+        for existing in self.__author_repo.get_all():
+            if existing.is_same_person(author):
+                return existing
+
+        return None

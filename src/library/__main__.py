@@ -10,13 +10,9 @@ from infrastructure.db.xml.book_repository import (
 )
 
 
-def main() -> None:
-    try:
-        author_repository = XmlAuthorRepository("data/authors.xml")
-        book_repository = XmlBookRepository("data/books.xml")
-    except LibraryError as error:
-        print(f"Не удалось подготовить хранилище: {error}")
-        return
+def build_console() -> Console:
+    author_repository = XmlAuthorRepository("data/authors.xml")
+    book_repository = XmlBookRepository("data/books.xml")
 
     author_service = AuthorService(
         author_repository=author_repository,
@@ -26,10 +22,19 @@ def main() -> None:
         author_repo=author_repository,
     )
 
-    console = Console(
+    return Console(
         author_service=author_service,
         book_service=book_service,
     )
+
+
+def main() -> None:
+    try:
+        console = build_console()
+    except LibraryError as error:
+        print(f"Не удалось подготовить хранилище: {error}")
+        return
+
     console.run()
 
 

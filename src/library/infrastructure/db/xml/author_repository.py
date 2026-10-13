@@ -21,8 +21,18 @@ class XmlAuthorRepository:
         if not self.__file_path.exists():
             return ET.Element("authors")
 
+        root = self.__parse_file()
+
+        if root.tag != "authors":
+            raise StorageError(
+                f"В файле {self.__file_path} корень должен быть <authors>"
+            )
+
+        return root
+
+    def __parse_file(self) -> ET.Element:
         try:
-            root = ET.parse(self.__file_path).getroot()
+            return ET.parse(self.__file_path).getroot()
         except ET.ParseError as error:
             raise StorageError(
                 f"Файл {self.__file_path} повреждён: некорректный XML"
@@ -31,13 +41,6 @@ class XmlAuthorRepository:
             raise StorageError(
                 f"Не удалось прочитать файл {self.__file_path}"
             ) from error
-
-        if root.tag != "authors":
-            raise StorageError(
-                f"В файле {self.__file_path} корень должен быть <authors>"
-            )
-
-        return root
 
     def __save_root(self, root: ET.Element) -> None:
         try:

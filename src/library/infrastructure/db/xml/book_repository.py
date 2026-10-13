@@ -21,8 +21,18 @@ class XmlBookRepository:
             self.__write_root(ET.Element("books"))
 
     def __read_root(self) -> ET.Element:
+        root = self.__parse_file()
+
+        if root.tag != "books":
+            raise StorageError(
+                f"В файле {self.__path} корень должен быть <books>"
+            )
+
+        return root
+
+    def __parse_file(self) -> ET.Element:
         try:
-            root = ET.parse(self.__path).getroot()
+            return ET.parse(self.__path).getroot()
         except ET.ParseError as error:
             raise StorageError(
                 f"Файл {self.__path} повреждён: некорректный XML"
@@ -31,13 +41,6 @@ class XmlBookRepository:
             raise StorageError(
                 f"Не удалось прочитать файл {self.__path}"
             ) from error
-
-        if root.tag != "books":
-            raise StorageError(
-                f"В файле {self.__path} корень должен быть <books>"
-            )
-
-        return root
 
     def __write_root(self, root: ET.Element) -> None:
         try:
@@ -82,24 +85,26 @@ class XmlBookRepository:
             if not book_id or title is None or not year:
                 raise ValueError("не заполнены обязательные поля")
 
-            author_ids: list[UUID] = []
-            author_ids_element = element.find("author_ids")
-
-            if author_ids_element is not None:
-                for item in author_ids_element.findall("author_id"):
-                    if item.text:
-                        author_ids.append(UUID(item.text))
-
             return Book(
                 book_id=UUID(book_id),
                 title=Title(title),
                 publication_year=PublicationYear(int(year)),
-                author_ids=author_ids,
+                author_ids=self.__read_author_ids(element),
             )
         except (ValueError, ValidationError) as error:
             raise StorageError(
                 f"В файле {self.__path} повреждена запись книги"
             ) from error
+
+    @staticmethod
+    def __read_author_ids(element: ET.Element) -> list[UUID]:
+        author_ids: list[UUID] = []
+
+        for item in element.findall("author_ids/author_id"):
+            if item.text:
+                author_ids.append(UUID(item.text))
+
+        return author_ids
 
     @staticmethod
     def __find_element(root: ET.Element, book_id: UUID) -> ET.Element | None:

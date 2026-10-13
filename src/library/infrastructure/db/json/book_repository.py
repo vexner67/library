@@ -22,17 +22,7 @@ class JsonBookRepository:
             self.__write_data([])
 
     def __read_data(self) -> list[dict[str, Any]]:
-        try:
-            with self.__path.open("r", encoding="utf-8") as file:
-                data = json.load(file)
-        except json.JSONDecodeError as error:
-            raise StorageError(
-                f"Файл {self.__path} повреждён: некорректный JSON"
-            ) from error
-        except OSError as error:
-            raise StorageError(
-                f"Не удалось прочитать файл {self.__path}"
-            ) from error
+        data = self.__read_file()
 
         if not isinstance(data, dict) or not isinstance(
             data.get("books"), list
@@ -41,6 +31,19 @@ class JsonBookRepository:
 
         books: list[dict[str, Any]] = data["books"]
         return books
+
+    def __read_file(self) -> Any:
+        try:
+            with self.__path.open("r", encoding="utf-8") as file:
+                return json.load(file)
+        except json.JSONDecodeError as error:
+            raise StorageError(
+                f"Файл {self.__path} повреждён: некорректный JSON"
+            ) from error
+        except OSError as error:
+            raise StorageError(
+                f"Не удалось прочитать файл {self.__path}"
+            ) from error
 
     def __write_data(self, books: list[dict[str, Any]]) -> None:
         try:
