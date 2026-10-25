@@ -80,19 +80,21 @@ class BookService:
         self.__book_repository.delete(book_id)
 
     def __save_authors(self, authors: list[Author]) -> list[UUID]:
-        author_ids: list[UUID] = []
+        self.__check_no_duplicates(authors)
+
+        return [self.__save_author_if_new(author) for author in authors]
+
+    @staticmethod
+    def __check_no_duplicates(authors: list[Author]) -> None:
+        checked: list[Author] = []
 
         for author in authors:
-            author_id = self.__save_author_if_new(author)
-
-            if author_id in author_ids:
+            if any(author.is_same_person(other) for other in checked):
                 raise ValidationError(
                     f"Автор «{author.name.value}» указан дважды"
                 )
 
-            author_ids.append(author_id)
-
-        return author_ids
+            checked.append(author)
 
     def __save_author_if_new(self, author: Author) -> UUID:
         existing = self.__find_same_person(author)
