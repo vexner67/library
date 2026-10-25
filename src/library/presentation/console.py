@@ -24,6 +24,9 @@ class AuthorServicePort(Protocol):
     def update_author(self, author: Author) -> None:
         raise NotImplementedError
 
+    def delete_author(self, author_id: UUID) -> None:
+        raise NotImplementedError
+
 
 class BookServicePort(Protocol):
     def add_book(
@@ -71,6 +74,7 @@ class Console:
             ("5", "Удалить книгу", self.__delete_book),
             ("6", "Показать всех авторов", self.__show_authors),
             ("7", "Изменить автора", self.__update_author),
+            ("8", "Удалить автора", self.__delete_author),
         ]
 
     def run(self) -> None:
@@ -186,6 +190,19 @@ class Console:
 
         self.__author_service.update_author(updated)
         print("\nАвтор изменён")
+
+    def __delete_author(self) -> None:
+        author = self.__pick_author("Номер автора для удаления: ")
+
+        if author is None:
+            return
+
+        if not self.__confirm(f"Удалить автора «{author.name.value}»?"):
+            print("\nУдаление отменено")
+            return
+
+        self.__author_service.delete_author(author.id)
+        print("\nАвтор удалён")
 
     def __pick_book(self, prompt: str) -> Book | None:
         books = self.__book_service.get_all_books()

@@ -16,6 +16,7 @@ def build_console() -> Console:
 
     author_service = AuthorService(
         author_repository=author_repository,
+        book_repository=book_repository,
     )
     book_service = BookService(
         book_repository=book_repository,
