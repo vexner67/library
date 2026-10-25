@@ -18,8 +18,8 @@ def build_console() -> Console:
         author_repository=author_repository,
     )
     book_service = BookService(
-        book_repo=book_repository,
-        author_repo=author_repository,
+        book_repository=book_repository,
+        author_repository=author_repository,
     )
 
     return Console(

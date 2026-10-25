@@ -14,10 +14,10 @@ from domain.exceptions import (
 
 
 class XmlBookRepository:
-    def __init__(self, path: str | Path) -> None:
-        self.__path = Path(path)
+    def __init__(self, file_path: str | Path) -> None:
+        self.__file_path = Path(file_path)
 
-        if not self.__path.exists():
+        if not self.__file_path.exists():
             self.__write_root(ET.Element("books"))
 
     def __read_root(self) -> ET.Element:
@@ -25,38 +25,38 @@ class XmlBookRepository:
 
         if root.tag != "books":
             raise StorageError(
-                f"В файле {self.__path} корень должен быть <books>"
+                f"В файле {self.__file_path} корень должен быть <books>"
             )
 
         return root
 
     def __parse_file(self) -> ET.Element:
         try:
-            return ET.parse(self.__path).getroot()
+            return ET.parse(self.__file_path).getroot()
         except ET.ParseError as error:
             raise StorageError(
-                f"Файл {self.__path} повреждён: некорректный XML"
+                f"Файл {self.__file_path} повреждён: некорректный XML"
             ) from error
         except OSError as error:
             raise StorageError(
-                f"Не удалось прочитать файл {self.__path}"
+                f"Не удалось прочитать файл {self.__file_path}"
             ) from error
 
     def __write_root(self, root: ET.Element) -> None:
         try:
-            self.__path.parent.mkdir(parents=True, exist_ok=True)
+            self.__file_path.parent.mkdir(parents=True, exist_ok=True)
             ET.indent(root, space="    ")
             content = ET.tostring(
                 root, encoding="utf-8", xml_declaration=True
             )
-            self.__path.write_bytes(content)
+            self.__file_path.write_bytes(content)
         except (OSError, ValueError) as error:
             raise StorageError(
-                f"Не удалось записать файл {self.__path}"
+                f"Не удалось записать файл {self.__file_path}"
             ) from error
 
     @staticmethod
-    def __book_to_element(book: Book) -> ET.Element:
+    def __to_element(book: Book) -> ET.Element:
         element = ET.Element("book")
 
         ET.SubElement(element, "id").text = str(book.id)
@@ -76,7 +76,7 @@ class XmlBookRepository:
 
         return element
 
-    def __element_to_book(self, element: ET.Element) -> Book:
+    def __to_book(self, element: ET.Element) -> Book:
         try:
             book_id = element.findtext("id")
             title = element.findtext("title")
@@ -93,7 +93,7 @@ class XmlBookRepository:
             )
         except (ValueError, ValidationError) as error:
             raise StorageError(
-                f"В файле {self.__path} повреждена запись книги"
+                f"В файле {self.__file_path} повреждена запись книги"
             ) from error
 
     @staticmethod
@@ -120,7 +120,7 @@ class XmlBookRepository:
         if self.__find_element(root, book.id) is not None:
             raise AlreadyExistsError(f"Книга {book.id} уже существует")
 
-        root.append(self.__book_to_element(book))
+        root.append(self.__to_element(book))
         self.__write_root(root)
 
     def get_by_id(self, book_id: UUID) -> Book | None:
@@ -129,13 +129,13 @@ class XmlBookRepository:
         if element is None:
             return None
 
-        return self.__element_to_book(element)
+        return self.__to_book(element)
 
     def get_all(self) -> list[Book]:
         root = self.__read_root()
 
         return [
-            self.__element_to_book(element)
+            self.__to_book(element)
             for element in root.findall("book")
         ]
 
@@ -157,7 +157,7 @@ class XmlBookRepository:
 
         index = list(root).index(element)
         root.remove(element)
-        root.insert(index, self.__book_to_element(book))
+        root.insert(index, self.__to_element(book))
         self.__write_root(root)
 
     def delete(self, book_id: UUID) -> None:

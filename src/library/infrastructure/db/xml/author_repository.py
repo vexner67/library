@@ -17,7 +17,7 @@ class XmlAuthorRepository:
     def __init__(self, file_path: str | Path) -> None:
         self.__file_path = Path(file_path)
 
-    def __load_root(self) -> ET.Element:
+    def __read_root(self) -> ET.Element:
         if not self.__file_path.exists():
             return ET.Element("authors")
 
@@ -42,7 +42,7 @@ class XmlAuthorRepository:
                 f"Не удалось прочитать файл {self.__file_path}"
             ) from error
 
-    def __save_root(self, root: ET.Element) -> None:
+    def __write_root(self, root: ET.Element) -> None:
         try:
             self.__file_path.parent.mkdir(parents=True, exist_ok=True)
             ET.indent(root, space="    ")
@@ -106,16 +106,16 @@ class XmlAuthorRepository:
         return None
 
     def add(self, author: Author) -> None:
-        root = self.__load_root()
+        root = self.__read_root()
 
         if self.__find_element(root, author.id) is not None:
             raise AlreadyExistsError(f"Автор {author.id} уже существует")
 
         root.append(self.__to_element(author))
-        self.__save_root(root)
+        self.__write_root(root)
 
     def get_by_id(self, author_id: UUID) -> Author | None:
-        element = self.__find_element(self.__load_root(), author_id)
+        element = self.__find_element(self.__read_root(), author_id)
 
         if element is None:
             return None
@@ -123,7 +123,7 @@ class XmlAuthorRepository:
         return self.__to_author(element)
 
     def get_all(self) -> list[Author]:
-        root = self.__load_root()
+        root = self.__read_root()
 
         return [
             self.__to_author(element)
@@ -143,7 +143,7 @@ class XmlAuthorRepository:
         ]
 
     def update(self, author: Author) -> None:
-        root = self.__load_root()
+        root = self.__read_root()
         element = self.__find_element(root, author.id)
 
         if element is None:
@@ -152,14 +152,14 @@ class XmlAuthorRepository:
         index = list(root).index(element)
         root.remove(element)
         root.insert(index, self.__to_element(author))
-        self.__save_root(root)
+        self.__write_root(root)
 
     def delete(self, author_id: UUID) -> None:
-        root = self.__load_root()
+        root = self.__read_root()
         element = self.__find_element(root, author_id)
 
         if element is None:
             raise NotFoundError(f"Автор {author_id} не найден")
 
         root.remove(element)
-        self.__save_root(root)
+        self.__write_root(root)

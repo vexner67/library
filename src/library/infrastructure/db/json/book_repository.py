@@ -15,10 +15,10 @@ from domain.exceptions import (
 
 
 class JsonBookRepository:
-    def __init__(self, path: str | Path) -> None:
-        self.__path = Path(path)
+    def __init__(self, file_path: str | Path) -> None:
+        self.__file_path = Path(file_path)
 
-        if not self.__path.exists():
+        if not self.__file_path.exists():
             self.__write_data([])
 
     def __read_data(self) -> list[dict[str, Any]]:
@@ -27,34 +27,34 @@ class JsonBookRepository:
         if not isinstance(data, dict) or not isinstance(
             data.get("books"), list
         ):
-            raise StorageError(f"В файле {self.__path} нет списка books")
+            raise StorageError(f"В файле {self.__file_path} нет списка books")
 
         books: list[dict[str, Any]] = data["books"]
         return books
 
     def __read_file(self) -> Any:
         try:
-            with self.__path.open("r", encoding="utf-8") as file:
+            with self.__file_path.open("r", encoding="utf-8") as file:
                 return json.load(file)
         except json.JSONDecodeError as error:
             raise StorageError(
-                f"Файл {self.__path} повреждён: некорректный JSON"
+                f"Файл {self.__file_path} повреждён: некорректный JSON"
             ) from error
         except OSError as error:
             raise StorageError(
-                f"Не удалось прочитать файл {self.__path}"
+                f"Не удалось прочитать файл {self.__file_path}"
             ) from error
 
     def __write_data(self, books: list[dict[str, Any]]) -> None:
         try:
-            self.__path.parent.mkdir(parents=True, exist_ok=True)
+            self.__file_path.parent.mkdir(parents=True, exist_ok=True)
             content = json.dumps(
                 {"books": books}, ensure_ascii=False, indent=4
             )
-            self.__path.write_bytes(content.encode("utf-8"))
+            self.__file_path.write_bytes(content.encode("utf-8"))
         except (OSError, ValueError) as error:
             raise StorageError(
-                f"Не удалось записать файл {self.__path}"
+                f"Не удалось записать файл {self.__file_path}"
             ) from error
 
     def __to_book(self, item: dict[str, Any]) -> Book:
@@ -76,7 +76,7 @@ class JsonBookRepository:
             ValidationError,
         ) as error:
             raise StorageError(
-                f"В файле {self.__path} повреждена запись книги"
+                f"В файле {self.__file_path} повреждена запись книги"
             ) from error
 
     @staticmethod

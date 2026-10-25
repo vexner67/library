@@ -12,11 +12,11 @@ from domain.exceptions import NotFoundError, ValidationError
 class BookService:
     def __init__(
         self,
-        book_repo: BookRepository,
-        author_repo: AuthorRepository,
+        book_repository: BookRepository,
+        author_repository: AuthorRepository,
     ) -> None:
-        self.__book_repo = book_repo
-        self.__author_repo = author_repo
+        self.__book_repository = book_repository
+        self.__author_repository = author_repository
 
     def add_book(
         self,
@@ -31,11 +31,11 @@ class BookService:
             author_ids=author_ids,
             publication_year=publication_year,
         )
-        self.__book_repo.add(book)
+        self.__book_repository.add(book)
         return book
 
     def get_book(self, book_id: UUID) -> Book:
-        book = self.__book_repo.get_by_id(book_id)
+        book = self.__book_repository.get_by_id(book_id)
 
         if book is None:
             raise NotFoundError(f"Книга {book_id} не найдена")
@@ -43,16 +43,16 @@ class BookService:
         return book
 
     def get_all_books(self) -> list[Book]:
-        return self.__book_repo.get_all()
+        return self.__book_repository.get_all()
 
     def find_books_by_title(self, title: str) -> list[Book]:
-        return self.__book_repo.find_by_title(title)
+        return self.__book_repository.find_by_title(title)
 
     def get_book_authors(self, book: Book) -> list[Author]:
         authors: list[Author] = []
 
         for author_id in book.author_ids:
-            author = self.__author_repo.get_by_id(author_id)
+            author = self.__author_repository.get_by_id(author_id)
 
             if author is not None:
                 authors.append(author)
@@ -73,11 +73,11 @@ class BookService:
             author_ids=book.author_ids,
             publication_year=publication_year,
         )
-        self.__book_repo.update(updated)
+        self.__book_repository.update(updated)
         return updated
 
     def delete_book(self, book_id: UUID) -> None:
-        self.__book_repo.delete(book_id)
+        self.__book_repository.delete(book_id)
 
     def __save_authors(self, authors: list[Author]) -> list[UUID]:
         author_ids: list[UUID] = []
@@ -100,11 +100,11 @@ class BookService:
         if existing is not None:
             return existing.id
 
-        self.__author_repo.add(author)
+        self.__author_repository.add(author)
         return author.id
 
     def __find_same_person(self, author: Author) -> Author | None:
-        for existing in self.__author_repo.get_all():
+        for existing in self.__author_repository.get_all():
             if existing.is_same_person(author):
                 return existing
 
