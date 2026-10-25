@@ -76,6 +76,22 @@ class BookService:
         self.__book_repository.update(updated)
         return updated
 
+    def update_book_authors(
+        self,
+        book_id: UUID,
+        authors: list[Author],
+    ) -> Book:
+        book = self.get_book(book_id)
+
+        updated = Book(
+            book_id=book.id,
+            title=book.title,
+            author_ids=self.__save_authors(authors),
+            publication_year=book.publication_year,
+        )
+        self.__book_repository.update(updated)
+        return updated
+
     def delete_book(self, book_id: UUID) -> None:
         self.__book_repository.delete(book_id)
 

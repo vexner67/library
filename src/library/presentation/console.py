@@ -54,6 +54,13 @@ class BookServicePort(Protocol):
     ) -> Book:
         raise NotImplementedError
 
+    def update_book_authors(
+        self,
+        book_id: UUID,
+        authors: list[Author],
+    ) -> Book:
+        raise NotImplementedError
+
     def delete_book(self, book_id: UUID) -> None:
         raise NotImplementedError
 
@@ -71,10 +78,11 @@ class Console:
             ("2", "Найти книгу по названию", self.__find_books),
             ("3", "Добавить книгу", self.__add_book),
             ("4", "Изменить книгу", self.__update_book),
-            ("5", "Удалить книгу", self.__delete_book),
-            ("6", "Показать всех авторов", self.__show_authors),
-            ("7", "Изменить автора", self.__update_author),
-            ("8", "Удалить автора", self.__delete_author),
+            ("5", "Изменить авторов книги", self.__update_book_authors),
+            ("6", "Удалить книгу", self.__delete_book),
+            ("7", "Показать всех авторов", self.__show_authors),
+            ("8", "Изменить автора", self.__update_author),
+            ("9", "Удалить автора", self.__delete_author),
         ]
 
     def run(self) -> None:
@@ -156,6 +164,18 @@ class Console:
 
         self.__book_service.update_book(book.id, title, year)
         print("\nКнига изменена")
+
+    def __update_book_authors(self) -> None:
+        book = self.__pick_book("Номер книги: ")
+
+        if book is None:
+            return
+
+        print("Введите новый список авторов книги")
+        authors = self.__read_authors()
+
+        self.__book_service.update_book_authors(book.id, authors)
+        print("\nАвторы книги изменены")
 
     def __delete_book(self) -> None:
         book = self.__pick_book("Номер книги для удаления: ")
