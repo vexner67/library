@@ -5,6 +5,8 @@ from domain.author.name import Name
 from domain.exceptions import ValidationError
 
 
+# Автор книги. Поля закрыты и доступны только для чтения,
+# изменение автора - это создание нового объекта с тем же id.
 class Author:
     def __init__(
             self,
@@ -47,6 +49,8 @@ class Author:
 
         return f"{self.__birth_date.year}–{self.__death_date.year}"
 
+    # Один и тот же человек: совпадают имя без учета регистра
+    # и дата рождения. id при этом может быть разным.
     def is_same_person(self, other: "Author") -> bool:
         return (
             self.__name.value.casefold() == other.name.value.casefold()

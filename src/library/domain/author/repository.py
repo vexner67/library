@@ -4,6 +4,8 @@ from uuid import UUID
 from domain.author.author import Author
 
 
+# Интерфейс хранилища. Его реализуют репозитории JSON и XML,
+# поэтому сервисы не зависят от формата файла.
 class AuthorRepository(Protocol):
     def add(self, author: Author) -> None:
         raise NotImplementedError

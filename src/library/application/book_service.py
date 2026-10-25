@@ -9,6 +9,8 @@ from domain.book.book import Book
 from domain.exceptions import NotFoundError, ValidationError
 
 
+# Сценарии работы с книгами. Новые авторы книги сохраняются
+# вместе с ней, уже известные берутся из хранилища.
 class BookService:
     def __init__(
         self,
@@ -67,6 +69,7 @@ class BookService:
     ) -> Book:
         book = self.get_book(book_id)
 
+        # Объекты неизменяемые, поэтому создаем книгу заново с тем же id.
         updated = Book(
             book_id=book.id,
             title=title,
@@ -83,6 +86,7 @@ class BookService:
     ) -> Book:
         book = self.get_book(book_id)
 
+        # Тот же прием, что и в update_book: новая книга с тем же id.
         updated = Book(
             book_id=book.id,
             title=book.title,
@@ -96,6 +100,8 @@ class BookService:
         self.__book_repository.delete(book_id)
 
     def __save_authors(self, authors: list[Author]) -> list[UUID]:
+        # Сначала проверяем весь список, чтобы при ошибке
+        # ничего не успело записаться в файл.
         self.__check_no_duplicates(authors)
 
         return [self.__save_author_if_new(author) for author in authors]
@@ -112,6 +118,7 @@ class BookService:
 
             checked.append(author)
 
+    # Если такой человек уже есть, используем его id, а не создаем дубликат.
     def __save_author_if_new(self, author: Author) -> UUID:
         existing = self.__find_same_person(author)
 

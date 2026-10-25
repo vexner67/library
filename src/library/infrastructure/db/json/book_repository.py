@@ -14,10 +14,13 @@ from domain.exceptions import (
 )
 
 
+# Хранит книги в JSON-файле вида {"books": [...]}.
+# Каждая операция заново читает файл и сразу записывает изменения.
 class JsonBookRepository:
     def __init__(self, file_path: str | Path) -> None:
         self.__file_path = Path(file_path)
 
+        # Пустой файл создается сразу, чтобы чтение всегда находило его.
         if not self.__file_path.exists():
             self.__write_data([])
 
@@ -57,6 +60,8 @@ class JsonBookRepository:
                 f"Не удалось записать файл {self.__file_path}"
             ) from error
 
+    # Любая ошибка в записи файла превращается в StorageError
+    # с понятным сообщением вместо KeyError или ValueError.
     def __to_book(self, item: dict[str, Any]) -> Book:
         try:
             return Book(

@@ -13,10 +13,13 @@ from domain.exceptions import (
 )
 
 
+# Хранит книги в XML-файле: корень <books>, внутри элементы <book>.
+# Каждая операция заново читает файл и сразу записывает изменения.
 class XmlBookRepository:
     def __init__(self, file_path: str | Path) -> None:
         self.__file_path = Path(file_path)
 
+        # Пустой файл создается сразу, чтобы чтение всегда находило его.
         if not self.__file_path.exists():
             self.__write_root(ET.Element("books"))
 
@@ -76,6 +79,8 @@ class XmlBookRepository:
 
         return element
 
+    # Любая ошибка в записи файла превращается в StorageError
+    # с понятным сообщением вместо KeyError или ValueError.
     def __to_book(self, element: ET.Element) -> Book:
         try:
             book_id = element.findtext("id")
@@ -155,6 +160,7 @@ class XmlBookRepository:
         if element is None:
             raise NotFoundError(f"Книга {book.id} не найдена")
 
+        # Заменяем элемент на том же месте, чтобы порядок записей не менялся.
         index = list(root).index(element)
         root.remove(element)
         root.insert(index, self.__to_element(book))

@@ -10,6 +10,7 @@ from domain.exceptions import (
 )
 
 
+# Сценарии работы с авторами.
 class AuthorService:
     def __init__(
         self,
@@ -45,6 +46,8 @@ class AuthorService:
     def delete_author(self, author_id: UUID) -> None:
         author = self.get_author(author_id)
 
+        # Автора с книгами удалять нельзя: у книг останутся
+        # ссылки на несуществующую запись.
         for book in self.__book_repository.get_all():
             if author.id in book.author_ids:
                 raise ValidationError(

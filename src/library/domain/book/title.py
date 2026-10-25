@@ -4,6 +4,7 @@ MIN_TITLE_LENGTH = 1
 MAX_TITLE_LENGTH = 200
 
 
+# Объект-значение: название книги без лишних пробелов по краям.
 class Title:
     def __init__(self, value: str) -> None:
         normalized = value.strip()

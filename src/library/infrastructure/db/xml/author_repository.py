@@ -13,10 +13,13 @@ from domain.exceptions import (
 )
 
 
+# Хранит авторов в XML-файле: корень <authors>, внутри элементы <author>.
+# Каждая операция заново читает файл и сразу записывает изменения.
 class XmlAuthorRepository:
     def __init__(self, file_path: str | Path) -> None:
         self.__file_path = Path(file_path)
 
+        # Пустой файл создается сразу, чтобы чтение всегда находило его.
         if not self.__file_path.exists():
             self.__write_root(ET.Element("authors"))
 
@@ -55,6 +58,8 @@ class XmlAuthorRepository:
                 f"Не удалось записать файл {self.__file_path}"
             ) from error
 
+    # Любая ошибка в записи файла превращается в StorageError
+    # с понятным сообщением вместо KeyError или ValueError.
     def __to_author(self, element: ET.Element) -> Author:
         author_id = element.findtext("id")
         name = element.findtext("name")
@@ -89,6 +94,7 @@ class XmlAuthorRepository:
         ET.SubElement(element, "birth_date").text = (
             author.birth_date.isoformat()
         )
+        # Пустой тег означает, что дата смерти неизвестна.
         ET.SubElement(element, "death_date").text = (
             author.death_date.isoformat()
             if author.death_date is not None
@@ -149,6 +155,7 @@ class XmlAuthorRepository:
         if element is None:
             raise NotFoundError(f"Автор {author.id} не найден")
 
+        # Заменяем элемент на том же месте, чтобы порядок записей не менялся.
         index = list(root).index(element)
         root.remove(element)
         root.insert(index, self.__to_element(author))

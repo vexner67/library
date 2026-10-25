@@ -2,9 +2,11 @@ from datetime import date
 
 from domain.exceptions import ValidationError
 
+# Примерный год появления книгопечатания.
 MIN_PUBLICATION_YEAR = 1450
 
 
+# Объект-значение: год издания не раньше книгопечатания и не в будущем.
 class PublicationYear:
     def __init__(self, year: int) -> None:
         current_year = date.today().year

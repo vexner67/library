@@ -14,10 +14,13 @@ from domain.exceptions import (
 )
 
 
+# Хранит авторов в JSON-файле вида {"authors": [...]}.
+# Каждая операция заново читает файл и сразу записывает изменения.
 class JsonAuthorRepository:
     def __init__(self, file_path: str | Path) -> None:
         self.__file_path = Path(file_path)
 
+        # Пустой файл создается сразу, чтобы чтение всегда находило его.
         if not self.__file_path.exists():
             self.__write_data([])
 
@@ -59,6 +62,8 @@ class JsonAuthorRepository:
                 f"Не удалось записать файл {self.__file_path}"
             ) from error
 
+    # Любая ошибка в записи файла превращается в StorageError
+    # с понятным сообщением вместо KeyError или ValueError.
     def __to_author(self, data: dict[str, Any]) -> Author:
         try:
             return Author(

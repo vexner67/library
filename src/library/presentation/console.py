@@ -1,3 +1,4 @@
+# readline включает стрелки и историю ввода в input().
 import readline  # noqa: F401
 from collections.abc import Callable
 from datetime import date
@@ -12,11 +13,14 @@ from domain.book.title import Title
 from domain.exceptions import LibraryError, ValidationError
 
 
+# Терминал иногда передает обрывки байтов кириллицы.
+# Возвращаем их в байты и отбрасываем то, что не декодируется.
 def read_line(prompt: str) -> str:
     raw = input(prompt)
     return raw.encode("utf-8", "surrogateescape").decode("utf-8", "ignore")
 
 
+# Консоль зависит только от тех методов сервисов, которые вызывает.
 class AuthorServicePort(Protocol):
     def get_all_authors(self) -> list[Author]:
         raise NotImplementedError
@@ -73,6 +77,7 @@ class Console:
     ) -> None:
         self.__book_service = book_service
         self.__author_service = author_service
+        # Пункт меню: клавиша, название и метод-обработчик.
         self.__menu: list[tuple[str, str, Callable[[], None]]] = [
             ("1", "Показать все книги", self.__show_books),
             ("2", "Найти книгу по названию", self.__find_books),
@@ -98,6 +103,8 @@ class Console:
                     break
 
                 self.__run_action(choice)
+            # Ошибка не завершает программу: сообщение выводится,
+            # и пользователь возвращается в меню.
             except LibraryError as error:
                 print(f"\nОшибка: {error}")
             except ValueError as error:
@@ -244,6 +251,7 @@ class Console:
         self.__print_authors(authors)
         return authors[self.__choose(len(authors), prompt)]
 
+    # Авторов вводят по одному, пока пользователь не откажется.
     def __read_authors(self) -> list[Author]:
         authors = [self.__read_author()]
 
@@ -328,6 +336,7 @@ class Console:
                 if current is not None and not raw
                 else self.__parse_date(raw)
             )
+            # Временный автор проверяет дату по правилам домена.
             return Author(author_id, name, birth_date).birth_date
 
         if current is None:
@@ -390,6 +399,7 @@ class Console:
                 f"«{raw}» — неверная дата, нужен формат ГГГГ-ММ-ДД"
             ) from error
 
+    # "-" убирает дату смерти, пустой ввод оставляет текущую.
     def __parse_death_date(
         self, raw: str, current: date | None
     ) -> date | None:
@@ -401,6 +411,7 @@ class Console:
 
         return self.__parse_date(raw)
 
+    # Повторяет вопрос, пока введенное значение не пройдет проверку.
     @staticmethod
     def __ask[T](prompt: str, parse: Callable[[str], T]) -> T:
         while True:
@@ -411,6 +422,7 @@ class Console:
             except ValidationError as error:
                 print(f"Ошибка: {error}. Повторите ввод")
 
+    # Пользователь вводит номер из списка, а возвращается индекс.
     def __choose(self, count: int, prompt: str) -> int:
         def to_index(raw: str) -> int:
             number = self.__parse_int(raw)

@@ -4,6 +4,8 @@ from uuid import UUID
 from domain.book.book import Book
 
 
+# Интерфейс хранилища. Его реализуют репозитории JSON и XML,
+# поэтому сервисы не зависят от формата файла.
 class BookRepository(Protocol):
     def add(self, book: Book) -> None:
         raise NotImplementedError

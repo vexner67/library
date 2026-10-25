@@ -17,6 +17,7 @@ from infrastructure.db.xml.book_repository import (
     XmlBookRepository,
 )
 
+# Пункт выбора при запуске и соответствующий формат файлов.
 STORAGE_FORMATS = {"1": "xml", "2": "json"}
 
 
@@ -47,6 +48,8 @@ def build_repositories(
     )
 
 
+# Собираем зависимости: репозитории передаются в сервисы,
+# сервисы - в консоль.
 def build_console(storage_format: str) -> Console:
     author_repository, book_repository = build_repositories(storage_format)
 

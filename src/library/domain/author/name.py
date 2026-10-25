@@ -4,6 +4,8 @@ MIN_NAME_LENGTH = 1
 MAX_NAME_LENGTH = 100
 
 
+# Объект-значение: имя автора проверяется один раз при создании,
+# поэтому дальше в коде можно не повторять проверки.
 class Name:
     def __init__(self, value: str) -> None:
         normalized = value.strip()
