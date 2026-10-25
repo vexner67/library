@@ -38,10 +38,9 @@ def test_death_before_birth_is_rejected() -> None:
         Author(uuid7(), Name("Автор"), date(1900, 1, 2), date(1900, 1, 1))
 
 
-def test_death_on_birth_day_is_allowed() -> None:
-    author = Author(uuid7(), Name("Автор"), date(1900, 1, 1), date(1900, 1, 1))
-
-    assert author.death_date == date(1900, 1, 1)
+def test_death_on_birth_day_is_rejected() -> None:
+    with pytest.raises(ValidationError):
+        Author(uuid7(), Name("Автор"), date(1900, 1, 1), date(1900, 1, 1))
 
 
 def test_life_years_of_living_author() -> None:

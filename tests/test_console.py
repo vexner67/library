@@ -135,7 +135,7 @@ def test_invalid_answers_are_asked_again(
     assert "Имя автора не может быть пустым" in output
     assert "неверная дата" in output
     assert "Дата рождения не может быть в будущем" in output
-    assert "Дата смерти раньше даты рождения" in output
+    assert "Дата смерти должна быть позже даты рождения" in output
     assert len(book_repository.get_all()) == 1
 
 

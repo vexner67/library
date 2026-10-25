@@ -18,8 +18,10 @@ class Author:
         if birth_date > date.today():
             raise ValidationError("Дата рождения не может быть в будущем")
 
-        if death_date is not None and death_date < birth_date:
-            raise ValidationError("Дата смерти раньше даты рождения")
+        if death_date is not None and death_date <= birth_date:
+            raise ValidationError(
+                "Дата смерти должна быть позже даты рождения"
+            )
 
         self.__id = author_id
         self.__name = name
