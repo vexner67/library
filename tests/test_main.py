@@ -43,6 +43,7 @@ def answer(monkeypatch: pytest.MonkeyPatch, answers: list[str]) -> None:
     monkeypatch.setattr("builtins.input", fake_input)
 
 
+# 1 выбирает XML, 2 - JSON.
 @pytest.mark.parametrize(("choice", "expected"), [("1", "xml"), ("2", "json")])
 def test_choose_storage_format(
     monkeypatch: pytest.MonkeyPatch, choice: str, expected: str
@@ -52,6 +53,7 @@ def test_choose_storage_format(
     assert main_module.choose_storage_format() == expected
 
 
+# Неверный ответ спрашивается заново.
 def test_wrong_format_is_asked_again(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -61,6 +63,7 @@ def test_wrong_format_is_asked_again(
     assert capsys.readouterr().out.count("Введите 1 или 2") == 2
 
 
+# Для JSON создаются JSON-хранилища и их файлы.
 def test_build_json_repositories(tmp_path: Path) -> None:
     authors, books = main_module.build_repositories("json")
 
@@ -70,6 +73,7 @@ def test_build_json_repositories(tmp_path: Path) -> None:
     assert (tmp_path / "data" / "books.json").exists()
 
 
+# Для XML создаются XML-хранилища и их файлы.
 def test_build_xml_repositories(tmp_path: Path) -> None:
     authors, books = main_module.build_repositories("xml")
 
@@ -79,6 +83,7 @@ def test_build_xml_repositories(tmp_path: Path) -> None:
     assert (tmp_path / "data" / "books.xml").exists()
 
 
+# После выбора формата запускается меню.
 def test_main_runs_console(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -91,6 +96,8 @@ def test_main_runs_console(
     assert "До свидания!" in output
 
 
+# Ctrl+D на выборе формата закрывает программу
+# и не создает файлов.
 def test_main_stops_on_end_of_input(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -101,6 +108,7 @@ def test_main_stops_on_end_of_input(
     assert not (tmp_path / "data").exists()
 
 
+# Ошибка хранилища выводится сообщением, а не трассировкой.
 def test_main_reports_storage_error(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],

@@ -69,6 +69,7 @@ def repository(file_format: str, file_path: Path) -> BookRepository:
     return open_repository(file_format, file_path)
 
 
+# Файл и папка создаются сразу, хранилище пустое.
 def test_file_is_created_on_init(
     repository: BookRepository, file_path: Path
 ) -> None:
@@ -76,6 +77,8 @@ def test_file_is_created_on_init(
     assert repository.get_all() == []
 
 
+# Все поля книги, включая порядок авторов,
+# сохраняются в файл и читаются обратно.
 def test_book_is_saved_with_all_fields(
     file_format: str, file_path: Path, repository: BookRepository
 ) -> None:
@@ -92,6 +95,7 @@ def test_book_is_saved_with_all_fields(
     assert stored.author_ids == author_ids
 
 
+# Запись с уже существующим id не добавляется.
 def test_book_with_same_id_is_not_added_twice(
     repository: BookRepository,
 ) -> None:
@@ -102,10 +106,12 @@ def test_book_with_same_id_is_not_added_twice(
         repository.add(book)
 
 
+# Для несуществующего id возвращается None.
 def test_missing_book_is_none(repository: BookRepository) -> None:
     assert repository.get_by_id(uuid7()) is None
 
 
+# Поиск по названию без учета регистра и пробелов по краям.
 def test_find_by_title_ignores_case(repository: BookRepository) -> None:
     war = make_book([uuid7()], "Война и мир")
     repository.add(war)
@@ -116,6 +122,7 @@ def test_find_by_title_ignores_case(repository: BookRepository) -> None:
     assert [book.id for book in found] == [war.id]
 
 
+# Пустой запрос возвращает все книги.
 def test_find_by_empty_title_returns_all(repository: BookRepository) -> None:
     repository.add(make_book([uuid7()], "Война и мир"))
     repository.add(make_book([uuid7()], "Анна Каренина", 1878))
@@ -123,6 +130,7 @@ def test_find_by_empty_title_returns_all(repository: BookRepository) -> None:
     assert len(repository.find_by_title("")) == 2
 
 
+# Измененная запись остается на своем месте в файле.
 def test_update_keeps_order(repository: BookRepository) -> None:
     first = make_book([uuid7()], "Война и мир")
     second = make_book([uuid7()], "Анна Каренина", 1878)
@@ -138,11 +146,13 @@ def test_update_keeps_order(repository: BookRepository) -> None:
     assert titles == ["Война и мир. Том 1", "Анна Каренина"]
 
 
+# Изменить отсутствующую запись нельзя.
 def test_update_missing_book_raises(repository: BookRepository) -> None:
     with pytest.raises(NotFoundError):
         repository.update(make_book([uuid7()]))
 
 
+# Удаляется только нужная запись.
 def test_delete_book(repository: BookRepository) -> None:
     first = make_book([uuid7()], "Война и мир")
     second = make_book([uuid7()], "Анна Каренина", 1878)
@@ -154,11 +164,13 @@ def test_delete_book(repository: BookRepository) -> None:
     assert [book.id for book in repository.get_all()] == [second.id]
 
 
+# Удалить отсутствующую запись нельзя.
 def test_delete_missing_book_raises(repository: BookRepository) -> None:
     with pytest.raises(NotFoundError):
         repository.delete(uuid7())
 
 
+# Любой испорченный файл дает понятную StorageError.
 def test_broken_file_raises_storage_error(
     file_format: str, file_path: Path
 ) -> None:
@@ -171,6 +183,7 @@ def test_broken_file_raises_storage_error(
             repository.get_all()
 
 
+# Если папку для файла создать нельзя, тоже StorageError.
 def test_unwritable_path_raises_storage_error(
     file_format: str, tmp_path: Path
 ) -> None:
@@ -180,6 +193,8 @@ def test_unwritable_path_raises_storage_error(
         open_repository(file_format, tmp_path / "data" / "books.db")
 
 
+# Примеры из docs читаются, и у каждой книги
+# все авторы есть в файле авторов.
 def test_example_files_from_docs_are_consistent(file_format: str) -> None:
     docs = Path(__file__).parents[1] / "docs"
     books = open_repository(

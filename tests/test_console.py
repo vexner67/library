@@ -43,6 +43,7 @@ def run_console(
     return run
 
 
+# Пункт 0 завершает программу.
 def test_exit(run_console: RunConsole) -> None:
     output = run_console(["0"])
 
@@ -50,14 +51,17 @@ def test_exit(run_console: RunConsole) -> None:
     assert "До свидания!" in output
 
 
+# Ctrl+D закрывает программу без трассировки.
 def test_end_of_input_closes_program(run_console: RunConsole) -> None:
     assert "До свидания!" in run_console([])
 
 
+# На неизвестный пункт меню выводится сообщение.
 def test_unknown_command(run_console: RunConsole) -> None:
     assert "Неизвестная команда" in run_console(["42", "0"])
 
 
+# Пустой каталог: просмотр и изменение не падают.
 def test_empty_catalog(run_console: RunConsole) -> None:
     output = run_console(["1", "4", "7", "0"])
 
@@ -65,6 +69,7 @@ def test_empty_catalog(run_console: RunConsole) -> None:
     assert "Авторов пока нет" in output
 
 
+# Книга выводится с авторами и годами их жизни.
 def test_show_books_with_authors(
     run_console: RunConsole,
     author_repository: InMemoryAuthorRepository,
@@ -83,6 +88,7 @@ def test_show_books_with_authors(
         in output
 
 
+# Поиск находит книгу или сообщает, что ничего нет.
 def test_find_books(
     run_console: RunConsole,
     author_repository: InMemoryAuthorRepository,
@@ -98,6 +104,7 @@ def test_find_books(
     assert "Книги не найдены" in output
 
 
+# Добавление книги с двумя авторами через меню.
 def test_add_book(
     run_console: RunConsole,
     author_repository: InMemoryAuthorRepository,
@@ -118,6 +125,8 @@ def test_add_book(
     assert author_repository.get_all()[1].death_date is None
 
 
+# Неверный ответ не ломает ввод: выводится ошибка
+# и вопрос задается снова.
 def test_invalid_answers_are_asked_again(
     run_console: RunConsole,
     book_repository: InMemoryBookRepository,
@@ -139,6 +148,8 @@ def test_invalid_answers_are_asked_again(
     assert len(book_repository.get_all()) == 1
 
 
+# Автор, введенный дважды, - сообщение об ошибке,
+# книга не сохраняется.
 def test_duplicate_author_is_reported(
     run_console: RunConsole,
     book_repository: InMemoryBookRepository,
@@ -154,6 +165,8 @@ def test_duplicate_author_is_reported(
     assert book_repository.get_all() == []
 
 
+# Пустой ответ оставляет поле без изменений,
+# номер вне списка спрашивается заново.
 def test_update_book_keeps_empty_fields(
     run_console: RunConsole,
     book_repository: InMemoryBookRepository,
@@ -168,6 +181,7 @@ def test_update_book_keeps_empty_fields(
     assert stored.publication_year.value == 1867
 
 
+# Замена авторов книги через меню.
 def test_update_book_authors(
     run_console: RunConsole,
     author_repository: InMemoryAuthorRepository,
@@ -187,6 +201,7 @@ def test_update_book_authors(
     assert author.name.value == "Антон Чехов"
 
 
+# Удаление требует подтверждения: "нет" отменяет его.
 def test_delete_book_asks_confirmation(
     run_console: RunConsole,
     book_repository: InMemoryBookRepository,
@@ -200,6 +215,7 @@ def test_delete_book_asks_confirmation(
     assert book_repository.get_all() == []
 
 
+# "-" убирает дату смерти, пустой ответ оставляет дату рождения.
 def test_update_author_removes_death_date(
     run_console: RunConsole,
     author_repository: InMemoryAuthorRepository,
@@ -216,6 +232,7 @@ def test_update_author_removes_death_date(
     assert stored.death_date is None
 
 
+# Попытка удалить автора с книгами показывает ошибку.
 def test_author_with_books_is_not_deleted(
     run_console: RunConsole,
     author_repository: InMemoryAuthorRepository,
@@ -231,6 +248,7 @@ def test_author_with_books_is_not_deleted(
     assert author.id in author_repository.authors
 
 
+# Автор без книг удаляется после подтверждения.
 def test_delete_author(
     run_console: RunConsole,
     author_repository: InMemoryAuthorRepository,
@@ -243,6 +261,7 @@ def test_delete_author(
     assert author_repository.authors == {}
 
 
+# Обрывок байтов кириллицы не ломает ввод.
 def test_read_line_drops_broken_bytes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

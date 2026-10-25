@@ -15,6 +15,7 @@ from helpers import (
 )
 
 
+# Вместе с книгой сохраняются ее новые авторы.
 def test_add_book_saves_book_and_new_authors(
     book_service: BookService,
     author_repository: InMemoryAuthorRepository,
@@ -32,6 +33,7 @@ def test_add_book_saves_book_and_new_authors(
     assert set(author_repository.authors) == {ilf.id, petrov.id}
 
 
+# Если автор уже есть, берется его id, дубликат не создается.
 def test_add_book_reuses_existing_author(
     book_service: BookService,
     author_repository: InMemoryAuthorRepository,
@@ -49,6 +51,8 @@ def test_add_book_reuses_existing_author(
     assert list(author_repository.authors) == [existing.id]
 
 
+# Автор, указанный дважды, - ошибка, и в хранилище
+# ничего не попадает, даже первый автор из списка.
 def test_duplicate_authors_are_rejected_before_saving(
     book_service: BookService,
     author_repository: InMemoryAuthorRepository,
@@ -67,11 +71,13 @@ def test_duplicate_authors_are_rejected_before_saving(
     assert book_repository.books == {}
 
 
+# Поиск несуществующей книги дает NotFoundError.
 def test_get_missing_book_raises(book_service: BookService) -> None:
     with pytest.raises(NotFoundError):
         book_service.get_book(uuid7())
 
 
+# Список всех книг и поиск по части названия.
 def test_get_all_and_find_books(
     book_service: BookService,
     book_repository: InMemoryBookRepository,
@@ -86,6 +92,7 @@ def test_get_all_and_find_books(
     assert book_service.find_books_by_title("МИР") == [war]
 
 
+# Если автора книги нет в хранилище, он пропускается.
 def test_get_book_authors_skips_missing(
     book_service: BookService,
     author_repository: InMemoryAuthorRepository,
@@ -97,6 +104,7 @@ def test_get_book_authors_skips_missing(
     assert book_service.get_book_authors(book) == [author]
 
 
+# Изменение книги меняет название и год, но не id и авторов.
 def test_update_book_keeps_id_and_authors(
     book_service: BookService,
     book_repository: InMemoryBookRepository,
@@ -114,6 +122,7 @@ def test_update_book_keeps_id_and_authors(
     assert book_repository.books[book.id].publication_year.value == 1867
 
 
+# Нельзя изменить книгу, которой нет.
 def test_update_missing_book_raises(book_service: BookService) -> None:
     with pytest.raises(NotFoundError):
         book_service.update_book(
@@ -121,6 +130,7 @@ def test_update_missing_book_raises(book_service: BookService) -> None:
         )
 
 
+# Авторов книги можно заменить, новые авторы сохраняются.
 def test_update_book_authors(
     book_service: BookService,
     author_repository: InMemoryAuthorRepository,
@@ -140,6 +150,7 @@ def test_update_book_authors(
     assert new_author.id in author_repository.authors
 
 
+# Нельзя сменить авторов у книги, которой нет.
 def test_update_authors_of_missing_book_raises(
     book_service: BookService,
 ) -> None:
@@ -147,6 +158,7 @@ def test_update_authors_of_missing_book_raises(
         book_service.update_book_authors(uuid7(), [make_author()])
 
 
+# Книга удаляется из хранилища.
 def test_delete_book(
     book_service: BookService,
     book_repository: InMemoryBookRepository,
@@ -159,6 +171,7 @@ def test_delete_book(
     assert book_repository.books == {}
 
 
+# Удаление несуществующей книги - ошибка.
 def test_delete_missing_book_raises(book_service: BookService) -> None:
     with pytest.raises(NotFoundError):
         book_service.delete_book(uuid7())

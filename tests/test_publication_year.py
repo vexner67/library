@@ -9,6 +9,7 @@ from domain.book.publication_year import (
 from domain.exceptions import ValidationError
 
 
+# Годы внутри диапазона, включая обе границы, принимаются.
 @pytest.mark.parametrize(
     "year", [MIN_PUBLICATION_YEAR, 1869, date.today().year]
 )
@@ -16,6 +17,7 @@ def test_valid_year_is_kept(year: int) -> None:
     assert PublicationYear(year).value == year
 
 
+# Годы за границами диапазона дают ValidationError.
 @pytest.mark.parametrize(
     "year", [MIN_PUBLICATION_YEAR - 1, date.today().year + 1, 0, -5]
 )

@@ -63,6 +63,7 @@ def repository(file_format: str, file_path: Path) -> AuthorRepository:
     return open_repository(file_format, file_path)
 
 
+# Файл и папка создаются сразу, хранилище пустое.
 def test_file_is_created_on_init(
     repository: AuthorRepository, file_path: Path
 ) -> None:
@@ -70,6 +71,7 @@ def test_file_is_created_on_init(
     assert repository.get_all() == []
 
 
+# Повторное открытие не стирает уже записанные данные.
 def test_existing_file_is_not_overwritten(
     file_format: str, file_path: Path, repository: AuthorRepository
 ) -> None:
@@ -78,6 +80,7 @@ def test_existing_file_is_not_overwritten(
     assert len(open_repository(file_format, file_path).get_all()) == 1
 
 
+# Все поля автора сохраняются в файл и читаются обратно.
 def test_author_is_saved_with_all_fields(
     file_format: str, file_path: Path, repository: AuthorRepository
 ) -> None:
@@ -93,6 +96,7 @@ def test_author_is_saved_with_all_fields(
     assert stored.death_date == date(1910, 11, 20)
 
 
+# Пустая дата смерти тоже читается правильно.
 def test_author_without_death_date_is_saved(
     repository: AuthorRepository,
 ) -> None:
@@ -105,6 +109,7 @@ def test_author_without_death_date_is_saved(
     assert stored.death_date is None
 
 
+# Запись с уже существующим id не добавляется.
 def test_author_with_same_id_is_not_added_twice(
     repository: AuthorRepository,
 ) -> None:
@@ -115,10 +120,12 @@ def test_author_with_same_id_is_not_added_twice(
         repository.add(author)
 
 
+# Для несуществующего id возвращается None.
 def test_missing_author_is_none(repository: AuthorRepository) -> None:
     assert repository.get_by_id(uuid7()) is None
 
 
+# Поиск по имени без учета регистра и пробелов по краям.
 def test_find_by_name_ignores_case(repository: AuthorRepository) -> None:
     tolstoy = make_author("Лев Толстой")
     repository.add(tolstoy)
@@ -129,6 +136,7 @@ def test_find_by_name_ignores_case(repository: AuthorRepository) -> None:
     assert [author.id for author in found] == [tolstoy.id]
 
 
+# Пустой запрос ничего не находит.
 def test_find_by_empty_name_returns_nothing(
     repository: AuthorRepository,
 ) -> None:
@@ -137,6 +145,7 @@ def test_find_by_empty_name_returns_nothing(
     assert repository.find_by_name("   ") == []
 
 
+# Измененная запись остается на своем месте в файле.
 def test_update_keeps_order(repository: AuthorRepository) -> None:
     first = make_author("Лев Толстой")
     second = make_author("Антон Чехов", date(1860, 1, 29))
@@ -151,11 +160,13 @@ def test_update_keeps_order(repository: AuthorRepository) -> None:
     assert names == ["Л. Н. Толстой", "Антон Чехов"]
 
 
+# Изменить отсутствующую запись нельзя.
 def test_update_missing_author_raises(repository: AuthorRepository) -> None:
     with pytest.raises(NotFoundError):
         repository.update(make_author())
 
 
+# Удаляется только нужная запись.
 def test_delete_author(repository: AuthorRepository) -> None:
     first = make_author("Лев Толстой")
     second = make_author("Антон Чехов", date(1860, 1, 29))
@@ -167,11 +178,14 @@ def test_delete_author(repository: AuthorRepository) -> None:
     assert [author.id for author in repository.get_all()] == [second.id]
 
 
+# Удалить отсутствующую запись нельзя.
 def test_delete_missing_author_raises(repository: AuthorRepository) -> None:
     with pytest.raises(NotFoundError):
         repository.delete(uuid7())
 
 
+# Любой испорченный файл дает понятную StorageError,
+# а не KeyError или ValueError.
 def test_broken_file_raises_storage_error(
     file_format: str, file_path: Path
 ) -> None:
@@ -184,6 +198,7 @@ def test_broken_file_raises_storage_error(
             repository.get_all()
 
 
+# Если папку для файла создать нельзя, тоже StorageError.
 def test_unwritable_path_raises_storage_error(
     file_format: str, tmp_path: Path
 ) -> None:
@@ -193,6 +208,7 @@ def test_unwritable_path_raises_storage_error(
         open_repository(file_format, tmp_path / "data" / "authors.db")
 
 
+# Примеры данных из docs читаются хранилищем.
 def test_example_file_from_docs_is_readable(file_format: str) -> None:
     docs = Path(__file__).parents[1] / "docs"
     authors = open_repository(
