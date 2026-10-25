@@ -18,10 +18,10 @@ class JsonAuthorRepository:
     def __init__(self, file_path: str | Path) -> None:
         self.__file_path = Path(file_path)
 
-    def __read_data(self) -> list[dict[str, Any]]:
         if not self.__file_path.exists():
-            return []
+            self.__write_data([])
 
+    def __read_data(self) -> list[dict[str, Any]]:
         data = self.__read_file()
 
         if not isinstance(data, dict) or not isinstance(

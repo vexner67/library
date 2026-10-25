@@ -17,10 +17,10 @@ class XmlAuthorRepository:
     def __init__(self, file_path: str | Path) -> None:
         self.__file_path = Path(file_path)
 
-    def __read_root(self) -> ET.Element:
         if not self.__file_path.exists():
-            return ET.Element("authors")
+            self.__write_root(ET.Element("authors"))
 
+    def __read_root(self) -> ET.Element:
         root = self.__parse_file()
 
         if root.tag != "authors":
