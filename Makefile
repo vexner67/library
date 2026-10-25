@@ -1,6 +1,7 @@
 PYTHON := .venv/bin/python
 SRC := src
 export PYTHONPATH := src/library
+export MYPYPATH := src/library
 
 .PHONY: install lint typecheck test check run
 
@@ -11,7 +12,7 @@ lint:
 	$(PYTHON) -m flake8 $(SRC) tests
 
 typecheck:
-	$(PYTHON) -m mypy --strict -p library
+	$(PYTHON) -m mypy --strict --explicit-package-bases $(SRC)/library
 
 test:
 	$(PYTHON) -m pytest tests
